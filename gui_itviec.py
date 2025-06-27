@@ -27,8 +27,17 @@ from sklearn.metrics import roc_curve, auc, roc_auc_score
 from sklearn.metrics import accuracy_score, confusion_matrix, f1_score, recall_score, precision_score
 
 # ĐỌC FILE
-df_Company = pd.read_excel('Overview_Companies.xlsx', index_col='id')
-df_Reviews = pd.read_excel('Reviews.xlsx', index_col='id')
+@st.cache_data
+def load_df_company(file):
+    return pd.read_excel(file, engine="openpyxl",index_col='id')
+
+@st.cache_data
+def load_df_reviews(file):
+    return pd.read_excel(file, engine="openpyxl",index_col='id')
+
+
+df_Company = load_df_company('Overview_Companies.xlsx')
+df_Reviews = load_df_reviews('Reviews.xlsx')
 
 data = df_Reviews.merge(df_Company, on='Company Name', how='left')
 data.columns = data.columns.str.replace("’","'")
