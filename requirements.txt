@@ -10,5 +10,5 @@ openpyxl
 deep_translator
 underthesea
 regex
-# gensim>=4.3.0
+gensim>=4.3.0
 scipy>=1.10.0
