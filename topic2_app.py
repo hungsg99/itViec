@@ -23,7 +23,7 @@ from sklearn.metrics.pairwise import linear_kernel, cosine_similarity
 
 from sklearn.feature_extraction.text import ENGLISH_STOP_WORDS
 from deep_translator import GoogleTranslator
-# from gensim import corpora, models, similarities
+from gensim import corpora, models, similarities
 from sklearn.linear_model import LogisticRegression
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.ensemble import RandomForestClassifier
@@ -32,7 +32,7 @@ from sklearn.model_selection import train_test_split
 from sklearn. metrics import classification_report
 from sklearn.metrics import roc_curve, auc, roc_auc_score
 from sklearn.metrics import accuracy_score, confusion_matrix, f1_score, recall_score, precision_score
-
+# import gensim
 import scipy
 import mylibs as ml
 # # ĐỌC FILE
@@ -99,10 +99,11 @@ with st.sidebar:
             📧 <a href="mailto:mphamm12@gmail.com">mphamm12@gmail.com</a><br><br>
             👤2. Võ Quốc Hùng<br>
             📧 <a href="mailto:hung232803@gmail.com">hung232803@gmail.com</a>      
-        
+            
         </div>
+        
     """, unsafe_allow_html=True)
-    
+    # st.write("✅ Gensim version:", gensim.__version__)
 # Tạo 2 cột
 col1, col2 = st.columns([4, 1])  # tỷ lệ 5:1 cho nội dung và logo
 
@@ -112,7 +113,7 @@ with col1:
             ĐỒ ÁN TỐT NGHIỆP DATA SCIENCE - MACHINE LEARNING - K304
         </h1>
         <h3 style='text-align: center; color: #2c3e50;'>
-            Giáo viên hướng dẫn: Khuất Thụy Phương
+            Giáo viên hướng dẫn: Khuất Thùy Phương
         </h3>
 
     """, unsafe_allow_html=True)
@@ -169,8 +170,35 @@ if st.session_state.selected_button == "2":
 if st.session_state.selected_button == "3":
     ml.scroll_to_top()
     st.subheader("🤖 Tạo Module dự đoán xem có Recommender hay là không?")
-    st.subheader("I. Xem nguồn dữ liệu")
-    st.write(data['Company Name'].value_counts().head(5))
+    st.subheader("Một số công ty có mặt trên thị trường")
+    # st.dataframe(data)
+   # Gom nhóm theo Company Name, nối các Title và What I like
+    grouped_data = data.groupby('Company Name').agg({
+        'Title': lambda x: '\n'.join(x.dropna().astype(str)),
+        'What I liked': lambda x: '\n'.join(x.dropna().astype(str)) ,
+        'Rating': 'mean'  
+    }).reset_index()
+    # Bước 2: Chọn ngẫu nhiên 5 công ty
+    sampled = grouped_data.sample(n=5)  # có thể bỏ random_state để luôn random khác
+    if st.button("🎲 Chọn 5 công ty ngẫu nhiên khác"):
+        sampled = sampled.sample(n=5)
+    def truncate_text(text, max_length=100):
+        return text if len(text) <= max_length else text[:max_length] + "..."    
+
+    # Hiển thị từng công ty
+    for _, row in sampled.iterrows():
+        preview_title = truncate_text(row['Title'], 100)
+        preview_like = truncate_text(row['What I liked'], 100)
+
+        with st.expander(f"🏢 {row['Company Name']} — ⭐ Trung bình rating: {row['Rating']:.2f}"):
+            st.markdown(f"**🎯 Titles:** {preview_title}")
+            st.markdown(f"**👍 What they liked:** {preview_like}")
+
+            with st.expander("📖 Xem chi tiết"):
+                st.markdown(f"**🎯 Full Titles:**\n{row['Title']}")
+                st.markdown(f"**👍 Full What they liked:**\n{row['What I liked']}")
+
+        
     st.subheader("II. Chart")
     
     # Vẽ biểu đồ phân bố sl người
@@ -178,7 +206,11 @@ if st.session_state.selected_button == "3":
            
     st.image("img/df_nhansu.png")
     st.image('img/c1_nhansu.png')
-
+    # # Load hình ảnh từ file
+    # image = Image.open("img/c1_nhansu.png")
+    # resized_image = image.resize((300, 200))  # Resize width x height
+    # # Hiển thị trên Streamlit
+    # st.image(resized_image, caption="Biểu đồ từ mô hình", use_container_width=True)
 
     # Biểu đồ quốc gia:
     st.markdown("<h4 style='margin-left: 20px;'>🔹Mật độ phân bố các quốc gia</h4>", unsafe_allow_html=True)        
@@ -212,128 +244,111 @@ if st.session_state.selected_button == "4":
     ml.scroll_to_top()
     st.subheader("New Prediction")
     
-    # df_companies = data
-    # if 'random_companies' not in st.session_state:       
-    #     st.session_state.random_companies = df_companies.sample(n=10, random_state=42)
+    df_companies = data
+    if 'random_companies' not in st.session_state:       
+        st.session_state.random_companies = df_companies.sample(n=10, random_state=42)
 
-    # if 'selected_id' not in st.session_state:
-    #     st.session_state.selected_id = None
-    # company_options = [(row['Company Name'], index) for index, row in st.session_state.random_companies.iterrows()]
+    if 'selected_id' not in st.session_state:
+        st.session_state.selected_id = None
+    company_options = [(row['Company Name'], index) for index, row in st.session_state.random_companies.iterrows()]
 
-    # selected_company = st.selectbox(
-    #     "Chọn công ty",
-    #     options=company_options,
-    #     format_func=lambda x: x[0]
-    # )
-    # # Display the selected company
-    # st.write("""
-    #     <svg width="24" height="24" fill="none" stroke="red" stroke-width="3" stroke-linecap="round" viewBox="0 0 24 24">
-    #     <path d="M12 5v14M5 12h14"/>
-    #     </svg> <span style="font-size:18px;">Bạn đã chọn công ty: </span>
-    #     """, selected_company[0],unsafe_allow_html=True)    
-    # st.write("🔑 ID:", selected_company[1])
-    # st.markdown(
-    #     """
-    #     <hr style="border-top: 1.5px dashed green; width: 100%;">
-    #     """,
-    #     unsafe_allow_html=True
-    #     )
-    # # Cập nhật session_state dựa trên lựa chọn hiện tại
-    # st.session_state.selected_id = selected_company[1]
-    # # DÙNG CHO CÁC SELECTION DROPDOWNS
-    # selections = {}  # Dùng dict để lưu kết quả từng dropdown
-    # dropdowns = [
-    #     ("Company size", sorted(data['Company size'].dropna().unique(), key=ml.extract_min)),
-    #     ("Country", data['Country'].dropna().unique()),
-    #     ("Working days", data['Working days'].dropna().unique()),
-    #     ("Overtime Policy", data['Overtime Policy'].dropna().unique())
-    #     ]
-    # # Tạo từng dòng form có label + selectbox canh ngang
-    # for label, options in dropdowns:
-    #     col1, col2 = st.columns([1, 2])
-    #     with col1:
-    #         st.markdown(f"<p style='margin-top: 0.6rem'>{label}</p>", unsafe_allow_html=True)
-    #     with col2:
-    #         selected = st.selectbox(label="",
-    #                             options=options,
-    #                             label_visibility="collapsed")
-    #         selections[label] = selected  # Gán giá trị vào dict
-    # # DÙNG CHO CÁC SLIDER
-    # sliders = [
-    #     ("Rating", 1, 5, 4),   # (label, min, max, default)
-    #     ("Salary & benefits", 1, 5, 4),
-    #     ("Training & learning", 1, 5, 4),
-    #     ("Management cares about me", 1, 5, 4),
-    #     ("Culture & fun", 1, 5, 4),
-    #     ("Office & workspace", 1, 5, 4)
-    #     ]
+    selected_company = st.selectbox(
+        "Chọn công ty",
+        options=company_options,
+        format_func=lambda x: x[0]
+    )
+    # Display the selected company
+    st.write("""
+        <svg width="24" height="24" fill="none" stroke="red" stroke-width="3" stroke-linecap="round" viewBox="0 0 24 24">
+        <path d="M12 5v14M5 12h14"/>
+        </svg> <span style="font-size:18px;">Bạn đã chọn công ty: </span>
+        """, selected_company[0],unsafe_allow_html=True)    
+    st.write("🔑 ID:", selected_company[1])
+    st.markdown(
+        """
+        <hr style="border-top: 1.5px dashed green; width: 100%;">
+        """,
+        unsafe_allow_html=True
+        )
+    # Cập nhật session_state dựa trên lựa chọn hiện tại
+    st.session_state.selected_id = selected_company[1]
+    # DÙNG CHO CÁC SELECTION DROPDOWNS
+    selections = {}  # Dùng dict để lưu kết quả từng dropdown
+    dropdowns = [
+        ("Company size", sorted(data['Company size'].dropna().unique(), key=ml.extract_min)),
+        ("Country", data['Country'].dropna().unique()),
+        ("Working days", data['Working days'].dropna().unique()),
+        ("Overtime Policy", data['Overtime Policy'].dropna().unique())
+        ]
+    # Tạo từng dòng form có label + selectbox canh ngang
+    for label, options in dropdowns:
+        col1, col2 = st.columns([1, 2])
+        with col1:
+            st.markdown(f"<p style='margin-top: 0.6rem'>{label}</p>", unsafe_allow_html=True)
+        with col2:
+            selected = st.selectbox(label="",
+                                options=options,
+                                label_visibility="collapsed")
+            selections[label] = selected  # Gán giá trị vào dict
+    # DÙNG CHO CÁC SLIDER
+    sliders = [
+        ("Rating", 1, 5, 4),   # (label, min, max, default)
+        ("Salary & benefits", 1, 5, 4),
+        ("Training & learning", 1, 5, 4),
+        ("Management cares about me", 1, 5, 4),
+        ("Culture & fun", 1, 5, 4),
+        ("Office & workspace", 1, 5, 4)
+        ]
 
-    # slider_results = {}
+    slider_results = {}
 
-    # for i, (label, min_val, max_val, default_val) in enumerate(sliders):
-    #     col1, col2,col3  = st.columns([1,1,1])
-    #     with col1:
-    #         st.markdown(f"<p style='margin-top: 0.6rem'>{label}</p>", unsafe_allow_html=True)
-    #     with col2:
-    #         value = st.slider(
-    #             label="",
-    #             min_value=min_val,
-    #             max_value=max_val,
-    #             value=default_val,
-    #             key=f"slider_{i}"
-    #         )
-    #         slider_results[label] = value
+    for i, (label, min_val, max_val, default_val) in enumerate(sliders):
+        col1, col2,col3  = st.columns([1,1,1])
+        with col1:
+            st.markdown(f"<p style='margin-top: 0.6rem'>{label}</p>", unsafe_allow_html=True)
+        with col2:
+            value = st.slider(
+                label="",
+                min_value=min_val,
+                max_value=max_val,
+                value=default_val,
+                key=f"slider_{i}"
+            )
+            slider_results[label] = value
 
-    # # Sử dụng điều khiển submit
-    # # st.subheader("Recommender")
-    # submitted = st.button("Submit")
-    # if submitted:
-    #     st.write("Bạn đã chọn:")
-    #     col1, col2 = st.columns([1,1])
-    #     with col1:
-    #         for label, value in selections.items():
-    #             st.write(f"✅ **{label}**: {value}") 
-    #     with col2:
-    #         for label, val in slider_results.items():
-    #             st.write(f"🔹 {label}: {val}")
+    # Sử dụng điều khiển submit
+    # st.subheader("Recommender")
+    submitted = st.button("Submit")
+    if submitted:
+        st.write("Bạn đã chọn:")
+        col1, col2 = st.columns([1,1])
+        with col1:
+            for label, value in selections.items():
+                st.write(f"✅ **{label}**: {value}") 
+        with col2:
+            for label, val in slider_results.items():
+                st.write(f"🔹 {label}: {val}")        
+
+        # Tạo DataFrame từ dict (1 dòng)
+        input_df = pd.DataFrame([{**selections, **slider_results}])
         
-                
+        # Load model và encoders
+        with open("logistic_model.pkl", "rb") as f:
+            recommended = pickle.load(f)
         
-    #     # Đọc lại model sau khi đã lưu
-    #     pkl_filename = "logistic_model.pkl"
-    #     with open(pkl_filename, 'rb') as f:
-    #         saved = pickle.load(f)
-
-    #     # Gọi lại model hoặc label_encoders:
-    #     loaded_model = saved['model']
-    #     loaded_encoders = saved['label_encoders']
-            
-    #     # Tạo DataFrame từ dict (1 dòng)
-    #     input_df = pd.DataFrame([{**selections, **slider_results}])
-
-    #     # st.write("🎯 Dữ liệu đầu vào dạng bảng:")
-    #     # st.dataframe(input_df)
+        for col in input_df.columns:
+            if input_df[col].dtype == 'object':
+                le = LabelEncoder()
+                input_df[col] = le.fit_transform(input_df[col].astype(str))
         
-    #     saved = pickle.load(open("logistic_model.pkl", "rb"))
-    #     model = saved['model']
-    #     label_encoders = saved['label_encoders']      
-    #     for col in input_df.columns:
-    #         key = f'le_{col}'
-    #         if key in label_encoders:
-    #             input_df[col] = label_encoders[key].transform(input_df[col].astype(str))
+        predit_new = recommended.predict(input_df)
+        result_map = {1: 'Recommend', 0: 'No Recommend'}
+        recommend_label = result_map[predit_new[0]]
 
-    #     # if input_df.select_dtypes(include='object').shape[1] > 0:
-    #     #     st.error("⛔ Vẫn còn cột kiểu object chưa được mã hóa!")
-    #     #     # Lấy các cột có kiểu dữ liệu object
-    #     #     object_cols = input_df.select_dtypes(include='object').columns.tolist()
-
-    #     #     # Hiển thị ra
-    #     #     st.warning(f"⚠️ Còn các cột chưa được mã hóa: {object_cols}")
-    #     # else:
-    #         # prediction = model.predict(input_df)
-    #         # st.success(f"🔮 Kết quả dự đoán: {prediction[0]}")
-    #     predit_new = model.predict(input_df)
-    #     st.success(f"🔮 Kết quả dự đoán: {predit_new[0]}")
+        st.success(f"✅ Kết quả dự đoán Recommend?: {recommend_label}")
+        
+        # st.success(f"🔮 Kết quả dự đoán: {predit_new[0]}")
+       
 
 
 
