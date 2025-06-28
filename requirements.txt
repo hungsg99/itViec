@@ -1,5 +1,5 @@
 streamlit==1.46.0
-numpy
+numpy==1.23.5
 pandas
 matplotlib
 seaborn
@@ -10,5 +10,5 @@ openpyxl
 deep_translator
 underthesea
 regex
-gensim>=4.3.0
-scipy>=1.10.0
+gensim == 4.3.1
+scipy == 1.10.1
