@@ -20,7 +20,7 @@ import pickle
 from sklearn.preprocessing import LabelEncoder, OneHotEncoder
 from sklearn.model_selection import train_test_split
 from sklearn.metrics.pairwise import linear_kernel, cosine_similarity
-from gensim import corpora, models, similarities
+
 from sklearn.feature_extraction.text import ENGLISH_STOP_WORDS
 from deep_translator import GoogleTranslator
 
