@@ -152,19 +152,74 @@ if st.session_state.selected_button == "1":
 #  CONTENTBASED
 if st.session_state.selected_button == "2":
     ml.scroll_to_top()
-    st.subheader("📈 Phân tích chi tiết")
-  
+    
     st.markdown("""
-                # Gemsim
-                    <a href="https://pypi.org/project/gensim">https://pypi.org/project/gensim </a>
-                    -Là một thư viện Python chuyên xác định sự tương tự về ngữ nghĩa giữa hai tài liệu thông qua mô hình không gian vector và bộ công cụ mô hình hóa chủ đề.
-                    - Có thể xử lý kho dữ liệu văn bản lớn với sự trợ giúp của việc truyền dữ liệu hiệu quả và các thuật toán tăng cường
-                    - Tốc độ xử lý và tối ưu hóa việc sử dụng bộ nhớ tốt
-                    - Tuy nhiên, Gensim có ít tùy chọn tùy biến cho các function
-                    #### Tham khảo:
-                    Link <a href="https://www.tutorialspoint.com/gensim/index.htm">https://www.tutorialspoint.com/gensim/index.htm</a>
-                    link <a href="https://www.machinelearningplus.com/nlp/gensim-tutorial">https://www.machinelearningplus.com/nlp/gensim-tutorial</a>
-                """)
+    # 📈 Gensim
+    - [Gensim trên PyPI](https://pypi.org/project/gensim): Là một thư viện Python chuyên xác định sự tương tự về ngữ nghĩa giữa hai tài liệu thông qua mô hình không gian vector và bộ công cụ mô hình hóa chủ đề.
+    - Có thể xử lý kho dữ liệu văn bản lớn với sự trợ giúp của việc truyền dữ liệu hiệu quả và các thuật toán tăng cường
+    - Tốc độ xử lý và tối ưu hóa việc sử dụng bộ nhớ tốt
+    - Tuy nhiên, Gensim có ít tùy chọn tùy biến cho các function
+
+    #### 🔗 Tham khảo thêm:
+    - [TutorialsPoint - Gensim](https://www.tutorialspoint.com/gensim/index.htm)
+    - [MachineLearningPlus - Gensim Tutorial](https://www.machinelearningplus.com/nlp/gensim-tutorial)
+    """)
+    # Open and read file to cosine_sim_new
+    with open('companies_cosine_sim.pkl', 'rb') as f:
+        cosine_sim_new = pickle.load(f)    
+
+    st.image('img/channels4_banner.jpg')
+    
+    if 'random_companies' not in st.session_state:
+        df_companies = pd.read_excel('Overview_Companies.xlsx')
+        st.session_state.random_companies = df_companies.sample(n=10, random_state=42)
+    else:
+        df_companies = pd.read_excel('Overview_Companies.xlsx')
+
+    
+
+    # Kiểm tra xem 'selected_id' đã có trong session_state hay chưa
+    if 'selected_id' not in st.session_state:
+        # Nếu chưa có, thiết lập giá trị mặc định là None hoặc ID sản phẩm đầu tiên
+        st.session_state.selected_id = None
+    # Kiểm tra xem 'selected_id' đã có trong session_state hay chưa
+    if 'selected_id' not in st.session_state:
+        # Nếu chưa có, thiết lập giá trị mặc định là None hoặc ID sản phẩm đầu tiên
+        st.session_state.selected_id = None
+    
+    # Theo cách cho người dùng chọn công ty từ dropdown
+    # Tạo một tuple cho mỗi sản phẩm, trong đó phần tử đầu là tên và phần tử thứ hai là ID
+    company_options = [(row['Company Name'], row['id']) for index, row in st.session_state.random_companies.iterrows()]
+    # st.session_state.random_companies
+    # Tạo một dropdown với options là các tuple này
+    selected_company = st.selectbox(
+        "Chọn công ty",
+        options=company_options,
+        format_func=lambda x: x[0]  # Hiển thị tên công ty
+    )
+    # Display the selected company
+    st.write("Bạn đã chọn:", selected_company)
+    # Cập nhật session_state dựa trên lựa chọn hiện tại
+    st.session_state.selected_id = selected_company[1]
+    
+    if st.session_state.selected_id:
+        st.write("id: ", st.session_state.selected_id)
+        # Hiển thị thông tin sản phẩm được chọn
+        selected_company = df_companies[df_companies['id'] == st.session_state.selected_id]
+        if not selected_company.empty:
+            # st.write('#### Bạn vừa chọn:')
+            st.write('### ', selected_company['Company Name'].values[0])
+
+            company_description = selected_company['Company overview'].values[0]
+            truncated_description = ' '.join(company_description.split()[:100])
+            st.write('##### Information:')
+            st.write(truncated_description, '...')
+
+            st.write('##### Các công ty liên quan:')
+            recommendations = ml.get_recommendations(df_companies, st.session_state.selected_id, cosine_sim=cosine_sim_new, nums=3) 
+            ml.display_recommended_companies_row(recommendations)
+        else:
+            st.write(f"Không tìm thấy công ty với ID: {st.session_state.selected_id}")
 
 # RECOMMEND
 if st.session_state.selected_button == "3":
@@ -206,11 +261,6 @@ if st.session_state.selected_button == "3":
            
     st.image("img/df_nhansu.png")
     st.image('img/c1_nhansu.png')
-    # # Load hình ảnh từ file
-    # image = Image.open("img/c1_nhansu.png")
-    # resized_image = image.resize((300, 200))  # Resize width x height
-    # # Hiển thị trên Streamlit
-    # st.image(resized_image, caption="Biểu đồ từ mô hình", use_container_width=True)
 
     # Biểu đồ quốc gia:
     st.markdown("<h4 style='margin-left: 20px;'>🔹Mật độ phân bố các quốc gia</h4>", unsafe_allow_html=True)        

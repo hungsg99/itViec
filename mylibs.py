@@ -6,6 +6,7 @@ import time
 from sklearn.feature_extraction.text import ENGLISH_STOP_WORDS
 from deep_translator import GoogleTranslator
 from sklearn.metrics.pairwise import linear_kernel, cosine_similarity
+from collections import Counter
 
 from underthesea import word_tokenize, sent_tokenize, pos_tag
 
@@ -187,3 +188,50 @@ def remove_stopword(text, stopwords):
     document = regex.sub(r'\s+', ' ', document).strip()
     return document
 
+# Hiển thị theo 3 cột
+def display_recommended_companies(recommended_companies, cols=5):
+    for i in range(0, len(recommended_companies), cols):
+        cols = st.columns(cols)
+        for j, col in enumerate(cols):
+            if i + j < len(recommended_companies):
+                company = recommended_companies.iloc[i + j]
+                with col:                       
+                    st.write(company['Company Name'])                  
+                    expander = st.expander(f"Company overview")
+                    company_description = company['Company overview']
+                    truncated_description = ' '.join(company_description.split()[:100]) + '...'
+                    expander.write(truncated_description)
+                    expander.markdown("Nhấn vào mũi tên để đóng hộp text này.")
+                    
+def display_recommended_companies_row(recommended_companies):
+    for _, company in recommended_companies.iterrows():
+        st.markdown(f"### 🏢 {company['Company Name']}")
+
+        expander = st.expander("📄 Company Overview")
+        company_description = company['Company overview']
+        truncated_description = ' '.join(company_description.split()[:100]) + '...'
+        expander.write(truncated_description)
+        expander.markdown("📌 Nhấn vào mũi tên để xem đầy đủ hoặc đóng.")
+        
+        st.markdown("---")  # Dòng phân cách giữa các công ty
+
+
+# function cần thiết
+def get_recommendations(df, id, cosine_sim, nums=5):
+    # Get the index of the company that matches the id
+    matching_indices = df.index[df['id'] == id].tolist()
+    if not matching_indices:
+        print(f"No company found with ID: {id}")
+        return pd.DataFrame()  # Return an empty DataFrame if no match
+    idx = matching_indices[0]
+    # Get the pairwise similarity scores of all companies with that company
+    sim_scores = list(enumerate(cosine_sim[idx]))
+    # Sort the companies based on the similarity scores
+    sim_scores = sorted(sim_scores, key=lambda x: x[1], reverse=True)
+    # Get the scores of the nums most similar companies (Ignoring the company itself)
+    sim_scores = sim_scores[1:nums+1]
+    # Get the company indices
+    company_indices = [i[0] for i in sim_scores]
+
+    # Return the top n most similar companies as a DataFrame
+    return df.iloc[company_indices]
