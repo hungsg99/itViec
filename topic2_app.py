@@ -23,7 +23,7 @@ from sklearn.metrics.pairwise import linear_kernel, cosine_similarity
 
 from sklearn.feature_extraction.text import ENGLISH_STOP_WORDS
 from deep_translator import GoogleTranslator
-
+from gensim import corpora, models, similarities
 from sklearn.linear_model import LogisticRegression
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.ensemble import RandomForestClassifier

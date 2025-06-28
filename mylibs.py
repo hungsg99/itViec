@@ -6,7 +6,7 @@ import time
 from sklearn.feature_extraction.text import ENGLISH_STOP_WORDS
 from deep_translator import GoogleTranslator
 from sklearn.metrics.pairwise import linear_kernel, cosine_similarity
-from gensim import corpora, models, similarities
+
 from underthesea import word_tokenize, sent_tokenize, pos_tag
 
     
