@@ -10,3 +10,4 @@ openpyxl
 deep_translator
 underthesea
 regex
+gensim
