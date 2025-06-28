@@ -7,3 +7,6 @@ scikit-learn
 plotly
 xgboost
 openpyxl
+deep_translator
+underthesea
+regex
