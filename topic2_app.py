@@ -32,7 +32,8 @@ from sklearn.model_selection import train_test_split
 from sklearn. metrics import classification_report
 from sklearn.metrics import roc_curve, auc, roc_auc_score
 from sklearn.metrics import accuracy_score, confusion_matrix, f1_score, recall_score, precision_score
-
+import gensim
+import scipy
 import mylibs as ml
 # # ĐỌC FILE
 # @st.cache_data
