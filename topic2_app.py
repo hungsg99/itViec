@@ -170,7 +170,7 @@ if st.session_state.selected_button == "3":
     ml.scroll_to_top()
     st.subheader("🤖 Tạo Module dự đoán xem có Recommender hay là không?")
     st.subheader("I. Xem nguồn dữ liệu")
-    # st.write(data['Company Name'].value_counts().head(5))
+    st.write(data['Company Name'].value_counts().head(5))
     st.subheader("II. Chart")
     
     # Vẽ biểu đồ phân bố sl người
@@ -178,11 +178,7 @@ if st.session_state.selected_button == "3":
            
     st.image("img/df_nhansu.png")
     st.image('img/c1_nhansu.png')
-    # # Load hình ảnh từ file
-    # image = Image.open("img/c1_nhansu.png")
-    # resized_image = image.resize((300, 200))  # Resize width x height
-    # # Hiển thị trên Streamlit
-    # st.image(resized_image, caption="Biểu đồ từ mô hình", use_container_width=True)
+
 
     # Biểu đồ quốc gia:
     st.markdown("<h4 style='margin-left: 20px;'>🔹Mật độ phân bố các quốc gia</h4>", unsafe_allow_html=True)        
