@@ -36,19 +36,19 @@ from sklearn.metrics import accuracy_score, confusion_matrix, f1_score, recall_s
 import scipy
 import mylibs as ml
 # # ĐỌC FILE
-# @st.cache_data
-# def load_df_company(file):
-#     return pd.read_excel(file, engine="openpyxl",index_col='id')
+@st.cache_data
+def load_df_company(file):
+    return pd.read_excel(file, engine="openpyxl",index_col='id')
 
-# @st.cache_data
-# def load_df_reviews(file):
-#     return pd.read_excel(file, engine="openpyxl",index_col='id')
+@st.cache_data
+def load_df_reviews(file):
+    return pd.read_excel(file, engine="openpyxl",index_col='id')
 
-# df_Company = load_df_company('Overview_Companies.xlsx')
-# df_Reviews = load_df_reviews('Reviews.xlsx')
+df_Company = load_df_company('Overview_Companies.xlsx')
+df_Reviews = load_df_reviews('Reviews.xlsx')
 
-# data = df_Reviews.merge(df_Company, on='Company Name', how='left')
-# data.columns = data.columns.str.replace("’","'")
+data = df_Reviews.merge(df_Company, on='Company Name', how='left')
+data.columns = data.columns.str.replace("’","'")
 
 
 # Cấu hình trang
